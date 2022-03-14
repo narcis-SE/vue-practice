@@ -1,25 +1,71 @@
 <template>
   <div class="container">
-    <Header title="Task Tracker" />
+    <Header @toggle-add-task="toggleAddTask" title="Task Tracker" :showAddTask="showAddTask" />
+    <div v-if="showAddTask">
+      <AddTask @add-task = "addTask" />
+    </div>
+    
+    <Tasks @toggle-reminder="toggleReminder" @delete-task="deleteTask" :tasks="tasks" /> 
   </div>
   
 </template>
 
 <script>
 import Header from './components/Header.vue'
+import Tasks from './components/Tasks.vue'
+import AddTask from './components/AddTask.vue'
 export default {
   name: 'App',
   components: {
     Header,
+    Tasks,
+    AddTask
 
   },
   data(){
     return{
-      tasks: []
+      tasks: [],
+      showAddTask: false
     }
   },
-  created(){
-    this.tasks = 
+  methods:{
+    toggleAddTask(){
+      this.showAddTask = !this.showAddTask
+    },
+    async addTask(task){
+      const res = await fetch('api/tasks')
+      this.tasks = [...this.tasks, task]
+    },
+    deleteTask(id){
+      if(confirm('Are ou sure?')){
+        this.tasks = this.tasks.filter((task)=> task.id !== id)
+      }
+      
+    },
+
+    toggleReminder(id){
+      this.tasks = this.tasks.map((task) => task.id === id ?
+      {...task, reminder: !task.reminder} : task)
+    },
+    
+    async fetchTasks(){
+    const res = await fetch('api/tasks')
+    const data = await res.json()
+    
+    return data
+    },
+
+    async fetchTask(){
+    const res = await fetch(`api/tasks/${id}`)
+    const data = await res.json()
+    
+    return data
+    },
+  },
+
+
+  async created(){
+    this.tasks = await this.fetchTasks() 
   }
 }
 </script>
